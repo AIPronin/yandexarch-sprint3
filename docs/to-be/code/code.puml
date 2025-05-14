@@ -28,10 +28,10 @@ class Device {
 class DeviceStatus {
     - String status
     - Timestamp timestamp
-    - DeviceDataInterface deviceData
+    - List<DeviceDataInterface> deviceData
     + String getStatus()
     + DateTime getLastUpdateDate()
-    + DeviceDataInterface getLastUpdateDate()
+    + List<DeviceDataInterface> getDeviceData()
 }
 class DeviceService {
     + getUserDevices(UserID: Int): Device[]
@@ -44,7 +44,7 @@ class DeviceService {
 DeviceDataInterface  ..|>  ConcreteDeviceData
 DeviceType "1" --> "1" Device : Тип устройства
 DeviceStatus "0" <--  Device : Статус устройства
-DeviceStatus  --> "0" DeviceDataInterface : Данные устройства
+DeviceStatus  --> "0" DeviceDataInterface : Данные c устройства
 DeviceService  --> "*" Device : Использование объектов устройств
 DeviceService  --> "*" DeviceStatus : Использование статусов устройств
 
