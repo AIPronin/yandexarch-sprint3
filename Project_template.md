@@ -72,11 +72,13 @@
 ![component-device-service-res.png](docs%2Fto-be%2Fcomponent%2Fcomponent-device-service-res.png)
 
 *Сервисы взаимодействия с устройствами являются уникальными для каждого вида устройств, которые могут быть интегрированы в систему. В данном случае приводится пример одного из сервисов*
+
 ![component-heating-service-res.png](docs%2Fto-be%2Fcomponent%2Fcomponent-heating-service-res.png)
 
 ![component-state-service-res.png](docs%2Fto-be%2Fcomponent%2Fcomponent-state-service-res.png)
 
 ![component-task-service-res.png](docs%2Fto-be%2Fcomponent%2Fcomponent-task-service-res.png)
+
 **Диаграмма кода (Code)**
 
 ![code.png](docs%2Fto-be%2Fcode%2Fcode.png)
