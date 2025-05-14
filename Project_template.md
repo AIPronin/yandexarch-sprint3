@@ -63,7 +63,7 @@
 
 **Диаграмма контейнеров (Containers)**
 
-![container-result.png](docs%2Fto-be%2Fcontainer%2Fcontainer-result.png)Добавьте диаграмму.
+![container-result.png](docs%2Fto-be%2Fcontainer%2Fcontainer-result.png)
 
 **Диаграмма компонентов (Components)**
 
@@ -84,8 +84,6 @@
 ![code.png](docs%2Fto-be%2Fcode%2Fcode.png)
 
 # Задание 3. Разработка ER-диаграммы
-
-Добавьте сюда ER-диаграмму. Она должна отражать ключевые сущности системы, их атрибуты и тип связей между ними.
 
 ![erd-res.png](docs%2Fto-be%2Ferd%2Ferd-res.png)
 
