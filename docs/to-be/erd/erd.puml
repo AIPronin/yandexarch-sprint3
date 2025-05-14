@@ -1,0 +1,76 @@
+@startuml
+
+
+entity "Пользователь" as user {
+  * ID: String
+  --
+  Имя : String
+  email : String
+  Телефон : String
+}
+
+entity "Токен аутентификации" as jwt {
+  * jwt: String
+  --
+  время окончания действия : Timestamp
+}
+entity  "Устройство пользователя" as device {
+  * ID: String
+  --
+  * Имя устройства: String
+  Тип устройства : Object  <<FK>>
+  Статус устройства : Object <<FK>>
+}
+entity "Тип устройства" as deviceType{
+  * ID: Int
+  --
+  * Название типа: String
+}
+
+entity "Статус устройства пользователя" as deviceStatus{
+  * Статус: String
+  * Ожидаемое состояние установленное пользователем: String
+  * Время последнего обновления : DateTime
+  Данные полученные при обновлении : List<Object> <<FK>>
+}
+
+entity "Данные с устройства пользователя" as deviceStatusData{
+  * Наименование параметра: String
+  * Значение параметра : String
+}
+
+entity "Задача по управлению устройством" as command {
+  * Id устройства: String  <<FK>>
+  * Id пользователя: String  <<FK>>
+  * Тип взаимодействия: Enum
+  * данные для выполнения команды : Object
+  * Параметры подключения : Object <<FK>>
+}
+entity "Параметры подключения к устройству" as connectionParams {
+  * Id устройства: String  <<FK>>
+  * Параметры: String
+}
+entity "Статус задачи" as commandStatus {
+  * Выполнено успешно?: boolean
+   Причина: String
+   Код ошибки: String
+}
+entity "Статус задачи" as commandStatus {
+  * Выполнено успешно?: boolean
+   Причина: String
+   Код ошибки: String
+}
+
+
+user ||--o{ device
+user ||--o{ jwt
+device ||--|| deviceType
+device ||--o| deviceStatus
+device ||--|| connectionParams
+deviceStatus ||--o{ deviceStatusData
+command ||--|| user
+command ||--|| device
+command ||--o| commandStatus
+command ||--o| connectionParams
+
+@enduml
