@@ -1,0 +1,103 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title "Тёплый дом. Диаграмма контейнеров"
+
+Person(user, "Пользователь", "Пользователь системы Теплый дом")
+System_Boundary(warmhouse, "Тёплый дом", "Система управления устройствами в доме") {
+    Container(frontend, "Frontend", "web/mobile app", "Приложение для управления системой умного дома")
+    Container(AGW, "API Gateway", "Kong", "Перенаправление запросов к API. Проверка аутентификации.")
+    Container(userService, "Сервис управления пользователями", "Java/Spring", "Управляет данными пользователя. Отвечает за регистрацию и профиль пользователя")
+    ContainerDb(userServiceDB, "БД Сервиса управления пользователями", "PostgreSQL", "Хранилище данных о пользователях")
+
+    Container(authService, "Сервис авторизации и аутентификации пользователей", "keycloak", "Отвечает за авторизацию и аутентификацию пользователей. Предоставляет JWT токен доступа")
+
+    Container(deviceService, "Сервис управления доступными устройствами", "Java/Spring", "Позволяет добавлять, получать, изменять и удалять устройства. Агрегирует доступную информацию об устройствах")
+    ContainerDb(deviceServiceDB, "БД Сервиса управления устройствами", "PostgreSQL", "Хранилище данных о домах пользователей и их устройствах")
+
+    Container(stateService, "Сервис управления состоянием устройств", "Java/Spring", "Позволяет получить последнее известное системе состояние устройства")
+    ContainerDb(stateServiceDB, "Хранилище Сервиса управления устройствами", "Redis", "Хранилище данных о текущем статусе устройств и последних полученных от устройств данных")
+
+    Container(taskManagerService, "Сервис управления заданиями", "Java/Spring", "Позволяет устанавливать и выполнять задачи по управлению устройствами")
+
+    Container(HeatingSystemService, "Сервис управления отоплением", "Java/Spring", "Позволяет управлять системой отопления и получать информацию о температуре в помещении")
+    Container(LightSystemService, "Сервис управления освещением", "Java/Spring", "Позволяет управлять системой освещения и получать информацию об освещении")
+    Container(GateSystemService, "Сервис управления воротами", "Java/Spring", "Позволяет управлять автоматическими воротами")
+    Container(VideoSurveillanceSystemService, "Сервис управления видеонаблюдением", "Java/Spring", "Позволяет управлять системой видеонаблюдения")
+
+
+
+    ContainerQueue(eventBroker, "Брокер сообщений", "Apache Kafka", "Обмен сообщениями")
+
+    Container(logging, "Система сбора и визуализации логов", "ELK", "Собирает, хранит и отображает логи работы системы")
+    Container(monitoring, "Система мониторинга", "Prometheus/Grafana", "Собирает, хранит и отображает метрики работы системы")
+    Container(kuber, "Система оркестрации контейнеров", "Kubernetes", "Автоматизации развёртывания, масштабирования контейнеризированных приложений и управления ими")
+}
+
+Boundary(externalDevices, "Внешнее оборудование, подключенное к системе") {
+    System_Ext(HeatingSystem, "Система управления отоплением", "Позволяет управлять отоплением в доме. Включает/выключает устройство, устанавливает требуемую температуру")
+    System_Ext(TemperatureSensor, "Датчики температуры", "Позволяет получить информацию о температуре в помещении")
+    System_Ext(LightSystem, "Система управления светом", "Позволяет включать и выключать свет")
+    System_Ext(GateSystem, "Система управления автоматическими воротами", "Позволяет запирать и отпирать автоматические ворота")
+    System_Ext(VideoSurveillanceSystem, "Система видеонаблюдения", "Позволяет удалённо наблюдать за домом")
+}
+
+
+Rel_D(user, frontend, "Регистрация и авторизация", "HTTPS")
+Rel_D(user, frontend, "Добавление новых устройств", "HTTPS")
+Rel_D(user, frontend, "Настройка сценариев работы устройств", "HTTPS")
+Rel_D(user, frontend, "Управляет устройствами через приложение", "HTTPS")
+Rel_D(user, frontend, "Получение данных с устройств", "HTTPS")
+Rel_D(user, frontend, "Просмотр информации с камер видеонаблюдения", "HTTPS")
+
+Rel_D(frontend, AGW, "Отправка запросов к приложению", "REST API")
+Rel_D(frontend, AGW, "Авторизация и аутентификация", "oAuth 2")
+Rel(AGW, userService, "Управление данными пользователя", "REST API")
+Rel(AGW, authService, "Авторизация и аутентификация", "REST API")
+Rel(userService, userServiceDB, "Работа с данными пользователя", "SQL")
+Rel(userService, authService, "Создание нового пользователя в системе авторизации", "REST API")
+
+Rel(AGW, deviceService, "Работа в панели управления", "REST API")
+Rel(deviceService, deviceServiceDB, "Работа с данными устройств", "SQL")
+
+Rel(deviceService, stateService, "Получение состояния устройств", "REST API")
+Rel(AGW, stateService, "Получение состояния устройств", "REST API")
+
+
+Rel(HeatingSystemService, taskManagerService, "Отправка заданий", "REST API")
+Rel(LightSystemService, taskManagerService, "Отправка заданий", "REST API")
+Rel(GateSystemService, taskManagerService, "Отправка заданий", "REST API")
+Rel(VideoSurveillanceSystemService, taskManagerService, "Отправка заданий", "REST API")
+
+Rel(VideoSurveillanceSystemService, VideoSurveillanceSystem, "Подключение к устройствам")
+
+Rel(taskManagerService, stateService, "Установка статуса ожидаемого состояния", "REST API")
+
+Rel(taskManagerService, eventBroker, "Отправка заданий", "kafka")
+Rel(eventBroker, taskManagerService, "Получение статуса выполнения заданий", "kafka")
+
+Rel(eventBroker, stateService, "Получение состояния устройств", "kafka")
+Rel(stateService, stateServiceDB, "Получение текущего статуса состояния устройств", "Redis")
+
+Rel(AGW, HeatingSystemService, "Управление отоплением", "REST API")
+Rel(AGW, LightSystemService, "Управление светом", "REST API")
+Rel(AGW, GateSystemService, "Управление автоматическими воротами", "REST API")
+Rel(AGW, VideoSurveillanceSystemService, "Управление системой видеонаблюдения", "REST API")
+Rel(AGW, VideoSurveillanceSystemService, "Управление системой видеонаблюдения", "REST API")
+
+
+Rel(taskManagerService, HeatingSystem, "Управление отоплением")
+Rel(taskManagerService, TemperatureSensor, "Получение температуры в помещении")
+Rel(taskManagerService, LightSystem, "Управление светом")
+Rel(taskManagerService, GateSystem, "Управление автоматическими воротами")
+Rel(taskManagerService, VideoSurveillanceSystem, "Просмотр данных с камер видеонаблюдения")
+
+Rel(eventBroker, externalDevices, "Получение заданий", "kafka")
+Rel(externalDevices, eventBroker, "Отправка состояния устройств", "kafka")
+Rel(externalDevices, eventBroker, "Получение статуса выполнения заданий", "kafka")
+
+
+
+SHOW_LEGEND()
+LAYOUT_TOP_DOWN()
+@enduml

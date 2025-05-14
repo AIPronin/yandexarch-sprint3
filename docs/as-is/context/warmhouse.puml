@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+
+
+title "Тёплый дом. Диаграмма контекста для as-is решения"
+
+Person(user, "Пользователь", "Пользователь системы Теплый дом")
+System(warmhouse, "Тёплый дом", "Система управления отоплением в доме")
+
+System_Ext(HeatingSystem, "Система управления отоплением", "Позволяет управлять отоплением в доме. Включает/выключает устройство, устанавливает требуемую температуру")
+System_Ext(TemperatureSensor, "Датчики температуры", "Позволяет получить информацию о температуре в помещении")
+
+
+Rel_D(user, warmhouse, "Управляет отоплением", "REST API")
+Rel_D(user, warmhouse, "Получение данных о температуре в помещении", "REST API")
+Rel_D(warmhouse, HeatingSystem, "Управление отоплением")
+Rel_D(warmhouse, TemperatureSensor, "Получение температуры в помещении")
+
+
+SHOW_LEGEND()
+LAYOUT_TOP_DOWN()
+@enduml

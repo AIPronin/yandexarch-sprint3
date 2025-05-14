@@ -1,0 +1,52 @@
+@startuml
+
+interface DeviceDataInterface {
+    + String getParamName()
+    + String getParamValue()
+}
+class ConcreteDeviceData {
+    - String paramName
+    - String paramValue
+    + String getParamName()
+    + String getParamValue()
+}
+class DeviceType {
+    - id: Int
+    - name: String
+    + getName()
+}
+class Device {
+    - id: String
+    - name: String
+    - deviceType: DeviceType
+    - deviceStatus: DeviceStatus
+    + String getName()
+    + DeviceType getDeviceType()
+    + DeviceStatus getDeviceStatus()
+}
+
+class DeviceStatus {
+    - String status
+    - Timestamp timestamp
+    - List<DeviceDataInterface> deviceData
+    + String getStatus()
+    + DateTime getLastUpdateDate()
+    + List<DeviceDataInterface> getDeviceData()
+}
+class DeviceService {
+    + getUserDevices(UserID: Int): Device[]
+    + getDevice(deviceId: String): Device
+    + getDeviceStatusFromStateService(deviceId: String): DeviceStatus
+    + addDevice(device: Device)
+    + updateDevice(device: Device)
+    + deleteDevice(deviceId: String)
+}
+DeviceDataInterface  ..|>  ConcreteDeviceData
+DeviceType "1" --> "1" Device : Тип устройства
+DeviceStatus "0" <--  Device : Статус устройства
+DeviceStatus  --> "0" DeviceDataInterface : Данные c устройства
+DeviceService  --> "*" Device : Использование объектов устройств
+DeviceService  --> "*" DeviceStatus : Использование статусов устройств
+
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Тёплый дом. Диаграмма компонентов для Сервиса управления отоплением"
+
+Container(AGW, "API Gateway", "Kong", "Перенаправление запросов к API. Проверка аутентификации.")
+
+Container_Boundary(HeatingSystemService, "Сервис управления отоплением", "Java/Spring", "Позволяет управлять системой отопления и получать информацию о температуре в помещении") {
+    Component(HeatingSystemController, "Контроллер", "Spring boot", "Реализует REST API")
+    Component(HeatingSystemServiceLayer, "Сервис управления отоплением", "Spring boot", "Реализует бизнес логику")
+    Component(HeatingSystemStrategy, "Стратегия взаимодействия с устройством", "Spring boot", "Отвечает за выбор способа взаимодействия с устройством определенного типа с учетом заданных пользователем алгоритмов и настроек устройства")
+    Component(HeatingSystemAdapter, "Адаптер для конкретного устройства", "Spring boot", "Отвечает за алгоритмы взаимодействия с устройством определенного типа")
+    Component(HeatingSystemCommand, "Команда на взаимодействие с устройством", "Spring boot", "Формирует команду, которую необходимо выполнить на устройстве определенным образом")
+}
+
+Container(taskManagerService, "Сервис управления заданиями", "Java/Spring", "Позволяет устанавливать и выполнять задачи по управлению устройствами")
+
+Rel(HeatingSystemController, HeatingSystemServiceLayer, "Вызов сервиса")
+Rel(HeatingSystemServiceLayer, HeatingSystemStrategy, "Выбор стратегии взаимодействия с устройством")
+Rel(HeatingSystemStrategy, HeatingSystemAdapter, "Получение определенного адаптера устройства")
+Rel(HeatingSystemStrategy, HeatingSystemCommand, "Формирование задания")
+
+Rel(HeatingSystemCommand, taskManagerService, "Отправка заданий", "REST API")
+
+Rel(AGW, HeatingSystemController, "Управление отоплением", "REST API")
+
+
+
+SHOW_LEGEND()
+LAYOUT_TOP_DOWN()
+@enduml

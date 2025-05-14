@@ -1,0 +1,29 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Тёплый дом. Диаграмма компонентов для Сервиса управления доступными устройствами"
+Container(AGW, "API Gateway", "Kong", "Перенаправление запросов к API. Проверка аутентификации.")
+Container_Boundary(deviceService, "Сервис управления доступными устройствами", "Java/Spring", "Позволяет добавлять, получать, изменять и удалять устройства. Агрегирует доступную информацию об устройствах") {
+    Component(deviceController, "Контроллер данных устройств", "Spring boot", "Реализует REST API")
+    Component(deviceServiceLayer, "Сервис управления устройствами", "Spring boot", "Реализует бизнес логику")
+    Component(deviceRepository, "Репозиторий получения данных об устройствах", "JPA", "Реализует доступ к данным")
+}
+ContainerDb(deviceServiceDB, "БД Сервиса управления устройствами", "PostgreSQL", "Хранилище данных о домах пользователей и их устройствах")
+Container(stateService, "Сервис управления состоянием устройств", "Java/Spring", "Позволяет получить последнее известное системе состояние устройства")
+
+
+
+Rel(deviceController, deviceServiceLayer, "Вызов сервиса")
+Rel(deviceServiceLayer, deviceRepository, "Получение данных")
+
+
+Rel(AGW, deviceController, "Работа в панели управления", "REST API")
+Rel(deviceRepository, deviceServiceDB, "Работа с данными устройств", "SQL")
+
+Rel(deviceServiceLayer, stateService, "Получение состояния устройств", "REST API")
+
+
+
+SHOW_LEGEND()
+LAYOUT_TOP_DOWN()
+@enduml

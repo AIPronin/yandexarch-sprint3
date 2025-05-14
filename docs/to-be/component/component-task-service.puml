@@ -1,0 +1,62 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Тёплый дом. Диаграмма компонентов для Сервиса управления заданиями"
+
+
+
+Container_Boundary(taskManagerService, "Сервис управления заданиями", "Java/Spring", "Позволяет устанавливать и выполнять задачи по управлению устройствами") {
+    Component(taskManagerController, "Контроллер", "Spring boot", "Реализует REST API")
+    Component(taskManagerServiceLayer, "Сервис управления задачами по взаимодействию с устройствами", "Spring boot", "Реализует бизнес логику")
+    Component(taskManagerConsumer, "Консюмер для получения статуса выполнения заданий", "Spring boot", "Подписан на события получения статуса выполнения заданий в kafka")
+    Component(taskManagerProducer, "Продюсер отправки заданий", "Spring boot", "Отправляет задания в kafka")
+}
+
+Container(HeatingSystemService, "Сервис управления отоплением", "Java/Spring", "Позволяет управлять системой отопления и получать информацию о температуре в помещении")
+Container(LightSystemService, "Сервис управления освещением", "Java/Spring", "Позволяет управлять системой освещения и получать информацию об освещении")
+Container(GateSystemService, "Сервис управления воротами", "Java/Spring", "Позволяет управлять автоматическими воротами")
+Container(VideoSurveillanceSystemService, "Сервис управления видеонаблюдением", "Java/Spring", "Позволяет управлять системой видеонаблюдения")
+
+Container(stateService, "Сервис управления состоянием устройств", "Java/Spring", "Позволяет получить последнее известное системе состояние устройства")
+
+ContainerQueue(eventBroker, "Брокер сообщений", "Apache Kafka", "Обмен сообщениями")
+
+Boundary(externalDevices, "Внешнее оборудование, подключенное к системе") {
+    System_Ext(HeatingSystem, "Система управления отоплением", "Позволяет управлять отоплением в доме. Включает/выключает устройство, устанавливает требуемую температуру")
+    System_Ext(TemperatureSensor, "Датчики температуры", "Позволяет получить информацию о температуре в помещении")
+    System_Ext(LightSystem, "Система управления светом", "Позволяет включать и выключать свет")
+    System_Ext(GateSystem, "Система управления автоматическими воротами", "Позволяет запирать и отпирать автоматические ворота")
+    System_Ext(VideoSurveillanceSystem, "Система видеонаблюдения", "Позволяет удалённо наблюдать за домом")
+}
+
+
+Rel(taskManagerController, taskManagerServiceLayer, "Вызов сервиса")
+
+
+
+Rel(HeatingSystemService, taskManagerController, "Отправка заданий", "REST API")
+Rel(LightSystemService, taskManagerController, "Отправка заданий", "REST API")
+Rel(GateSystemService, taskManagerController, "Отправка заданий", "REST API")
+Rel(VideoSurveillanceSystemService, taskManagerController, "Отправка заданий", "REST API")
+
+
+Rel(taskManagerServiceLayer, stateService, "Установка статуса ожидаемого состояния", "REST API")
+
+Rel_U(eventBroker, taskManagerConsumer, "Получение статуса выполнения заданий", "kafka")
+Rel(taskManagerConsumer, taskManagerServiceLayer, "Выполнение предустановленных алгоритмов")
+Rel(taskManagerServiceLayer, taskManagerProducer, "Отправка заданий устройствам, если устройства поддерживают асинхронное взаимодействие")
+Rel_D(taskManagerProducer, eventBroker, "Отправка заданий устройствам", "kafka")
+
+
+Rel_D(taskManagerServiceLayer, HeatingSystem, "Управление отоплением. Синхронный вызов")
+Rel_D(taskManagerServiceLayer, TemperatureSensor, "Получение температуры в помещении. Синхронный вызов")
+Rel_D(taskManagerServiceLayer, LightSystem, "Управление светом. Синхронный вызов")
+Rel_D(taskManagerServiceLayer, GateSystem, "Управление автоматическими воротами. Синхронный вызов")
+Rel_D(taskManagerServiceLayer, VideoSurveillanceSystem, "Управление системой видеонаблюдения. Синхронный вызов")
+
+Rel_D(eventBroker, externalDevices, "Получение заданий", "kafka")
+Rel_U(externalDevices, eventBroker, "Получение статуса выполнения заданий", "kafka")
+
+SHOW_LEGEND()
+LAYOUT_TOP_DOWN()
+@enduml

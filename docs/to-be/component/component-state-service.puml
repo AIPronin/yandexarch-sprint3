@@ -1,0 +1,37 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Тёплый дом. Диаграмма компонентов для Сервиса управления состоянием устройств"
+
+Container(AGW, "API Gateway", "Kong", "Перенаправление запросов к API. Проверка аутентификации.")
+
+Container_Boundary(stateService, "Сервис управления состоянием устройств", "Java/Spring", "Позволяет получить последнее известное системе состояние устройства") {
+    Component(stateController, "Контроллер", "Spring boot", "Реализует REST API")
+    Component(stateServiceLayer, "Сервис управления состоянием", "Spring boot", "Реализует бизнес логику")
+    Component(stateRepository, "Репозиторий получения данных", "JPA", "Реализует доступ к данным")
+    Component(stateConsumer, "Консюмер получения состояния", "Spring boot", "Подписан на события получения состояния в kafka")
+}
+
+
+Container(deviceService, "Сервис управления доступными устройствами", "Java/Spring", "Позволяет добавлять, получать, изменять и удалять устройства. Агрегирует доступную информацию об устройствах")
+Container(taskManagerService, "Сервис управления заданиями", "Java/Spring", "Позволяет устанавливать и выполнять задачи по управлению устройствами")
+
+ContainerDb(stateServiceDB, "Хранилище Сервиса управления устройствами", "Redis", "Хранилище данных о текущем статусе устройств и последних полученных от устройств данных")
+ContainerQueue(eventBroker, "Брокер сообщений", "Apache Kafka", "Обмен сообщениями")
+
+Rel(stateController, stateServiceLayer, "Вызов сервиса")
+Rel(stateServiceLayer, stateRepository, "Получение/изменение данных")
+
+Rel(deviceService, stateController, "Получение состояния устройств", "REST API")
+Rel(AGW, stateController, "Получение состояния устройств", "REST API")
+
+Rel(taskManagerService, stateController, "Установка статуса ожидаемого состояния", "REST API")
+
+Rel(eventBroker, stateConsumer, "Получение состояния устройств", "kafka")
+Rel(stateConsumer, stateRepository, "Актуализация состояния устройства", "kafka")
+Rel(stateRepository, stateServiceDB, "Получение/изменение текущего статуса состояния устройств", "Redis")
+
+
+SHOW_LEGEND()
+LAYOUT_TOP_DOWN()
+@enduml

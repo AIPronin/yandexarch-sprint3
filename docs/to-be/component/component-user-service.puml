@@ -1,0 +1,36 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Тёплый дом. Диаграмма компонентов для Сервиса управления пользователями"
+
+Container(AGW, "API Gateway", "Kong", "Перенаправление запросов к API. Проверка аутентификации.")
+
+Container_Boundary(userService, "Сервис управления пользователями", "Java/Spring", "Управляет данными пользователя. Отвечает за регистрацию и профиль пользователя") {
+    Component(userController, "Контроллер", "Spring boot", "Реализует REST API")
+    Component(userServiceLayer, "Сервис управления пользователями", "Spring boot", "Реализует бизнес логику")
+    Component(userRepository, "Репозиторий получения данных", "JPA", "Реализует доступ к данным")
+}
+
+
+   ContainerDb(userServiceDB, "БД Сервиса управления пользователями", "PostgreSQL", "Хранилище данных о пользователях")
+
+    Container(authService, "Сервис авторизации и аутентификации пользователей", "keycloak", "Отвечает за авторизацию и аутентификацию пользователей. Предоставляет JWT токен доступа")
+
+
+
+Rel(userController, userServiceLayer, "Вызов сервиса")
+Rel(userServiceLayer, userRepository, "Получение/изменение данных")
+
+
+
+Rel(userRepository, userServiceDB, "Работа с данными", "SQL")
+
+Rel(AGW, userController, "Управление данными пользователя", "REST API")
+Rel(AGW, authService, "Авторизация и аутентификация", "REST API")
+Rel(userServiceLayer, authService, "Создание нового пользователя в системе авторизации", "REST API")
+
+
+
+SHOW_LEGEND()
+LAYOUT_TOP_DOWN()
+@enduml
